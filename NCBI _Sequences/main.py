@@ -19,51 +19,62 @@ firebase_admin.initialize_app(cred)
 
 db = firestore.client()
 
-
-
-
 chrome_options = Options()
 chrome_options.add_argument("--headless")
 
+# .options = chrome_options
+driver = webdriver.Chrome("/usr/lib/chromium-browser/chromedriver", options = chrome_options)
+
+for filename in ['chickURL.txt', 'dogURL.txt', 'mouseURL.txt', 'ratURL.txt']:
+    
 #Reading the list of URLS containing mRNA names.
 
-with open('humanURL.txt', 'r') as f:
-    contents = [x.strip('"') for x in f.read().strip().split('\n')][1:]
-    print("Num URLS-", len(contents))
-    f.close()
+    with open(filename, 'r') as f:
+        contents = [x.strip('"') for x in f.read().strip().split('\n')]
+        print(filename, "Num URLS-", len(contents))
+        # contents = contents[2:3]
+        f.close()
 
-# # .options = chrome_options
-driver = webdriver.Chrome("/usr/lib/chromium-browser/chromedriver", options = chrome_options)
-for idx, each in enumerate(contents):
+    # print(contents)
 
-    while True:
-        driver.get(each)
-        time.sleep(10)
-        seqs = [ x.text for x in driver.find_elements_by_xpath('//pre')]
-        if len(seqs) == 18:
-            break
+    for idx, each in enumerate(contents):
 
-    if idx%50 == 0:
-        if idx != 0:
-            batch.commit()
-            print("Sequences Uploaded!")
-        batch = db.batch()
-
-
-    for x in seqs:
-        name = x.split('.')[0].strip('>')
-        sequence = "".join(x.split('\n')[1:]).strip()
+        mrna_names = each.strip('"https://www.ncbi.nlm.nih.gov/nuccore/')
+        mrna_names = each.strip('?report=fasta&log$=seqview&format=text"').split(',')
         
-        # print("Name", name)
-        # print("Seq-", sequence)
-        doc_ref = db.collection(u'mRNA').document(name)
-        batch.set(doc_ref, {'seq':sequence})
+        # print(mrna_names)
+        # print(len(mrna_names))
+        # print(filename[:-4])
 
-    print("\nIterating-",idx,"Sequences Uploaded-",len(seqs),"\n")
+        while True:
+            driver.get(each)
+            time.sleep(10)
+            seqs = [ x.text for x in driver.find_elements_by_xpath('//pre')]
+            if len(seqs) == len(mrna_names):
+                break
+        
+        
+        if idx%50 == 0:
+            if idx != 0:
+                batch.commit()
+                print("\nSequences Uploaded!\n")
+            batch = db.batch()
 
-    #commit and end if length is odd
-    if idx == len(contents)-1:
-        batch.commit()
-        print("Sequences Uploaded!")
+
+        for x in seqs:
+            name = x.split('.')[0].strip('>')
+            sequence = "".join(x.split('\n')[1:]).strip()
+            
+            # print("Name", name)
+            # print("Seq-", sequence)
+            doc_ref = db.collection(filename[:-4]).document(name)
+            batch.set(doc_ref, {'seq':sequence})
+
+        print(filename,"\nIterating-",idx,"Sequences Uploaded-",len(seqs),"\n")
+
+        #commit and end if length is odd
+        if idx == len(contents)-1:
+            batch.commit()
+            print("\nSequences Uploaded!\n")
 
 driver.close()
