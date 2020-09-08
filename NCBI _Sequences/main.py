@@ -30,7 +30,7 @@ for filename in ['chickURL.txt', 'dogURL.txt', 'mouseURL.txt', 'ratURL.txt']:
 #Reading the list of URLS containing mRNA names.
 
     with open(filename, 'r') as f:
-        contents = [x.strip('"') for x in f.read().strip().split('\n')]
+        contents = [x.strip('"') for x in f.read().strip().split('\n')][1:]
         print(filename, "Num URLS-", len(contents))
         # contents = contents[2:3]
         f.close()
@@ -45,7 +45,7 @@ for filename in ['chickURL.txt', 'dogURL.txt', 'mouseURL.txt', 'ratURL.txt']:
         # print(mrna_names)
         # print(len(mrna_names))
         # print(filename[:-4])
-
+        # print(each)
         while True:
             driver.get(each)
             time.sleep(10)
