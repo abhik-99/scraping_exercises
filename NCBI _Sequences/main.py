@@ -24,28 +24,29 @@ chrome_options.add_argument("--headless")
 
 # .options = chrome_options
 driver = webdriver.Chrome("/usr/lib/chromium-browser/chromedriver", options = chrome_options)
+# 'dogURL.txt', 'mouseURL.txt', 'ratURL.txt'
 
-for filename in ['chickURL.txt', 'dogURL.txt', 'mouseURL.txt', 'ratURL.txt']:
+for filename in ['chickURL.txt', ]:
     
 #Reading the list of URLS containing mRNA names.
 
     with open(filename, 'r') as f:
         contents = [x.strip('"') for x in f.read().strip().split('\n')][1:]
         print(filename, "Num URLS-", len(contents))
-        # contents = contents[2:3]
+        contents = contents[870:]
         f.close()
 
     # print(contents)
 
     for idx, each in enumerate(contents):
-
+        
         mrna_names = each.strip('"https://www.ncbi.nlm.nih.gov/nuccore/')
-        mrna_names = each.strip('?report=fasta&log$=seqview&format=text"').split(',')
+        mrna_names = mrna_names.strip('?report=fasta&log$=seqview&format=text"').split(',')
         
         # print(mrna_names)
         # print(len(mrna_names))
         # print(filename[:-4])
-        # print(each)
+        print(each)
         while True:
             driver.get(each)
             time.sleep(10)
@@ -70,7 +71,7 @@ for filename in ['chickURL.txt', 'dogURL.txt', 'mouseURL.txt', 'ratURL.txt']:
             doc_ref = db.collection(filename[:-4]).document(name)
             batch.set(doc_ref, {'seq':sequence})
 
-        print(filename,"\nIterating-",idx,"Sequences Uploaded-",len(seqs),"\n")
+        print(filename,"Iterating-",idx+871,"Sequences Uploaded-",len(seqs),"\n")
 
         #commit and end if length is odd
         if idx == len(contents)-1:
